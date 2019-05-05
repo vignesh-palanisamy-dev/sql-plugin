@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+
+
+
+/* Full-width input fields */
+input[type=text], input[type=password] {
+  width: 100%;
+  padding: 15px;
+  margin: 5px 0 22px 0;
+  display: inline-block;
+  border: none;
+  background: #f1f1f1;
+}
+
+input[type=text]:focus, input[type=password]:focus {
+  background-color: #ddd;
+  outline: none;
+}
+
+/* Overwrite default styles of hr */
+hr {
+  border: 1px solid #f1f1f1;
+  margin-bottom: 25px;
+}
+
+/* Set a style for the submit button */
+.registerbtn {
+  background-color: #4CAF50;
+  color: white;
+  padding: 16px 20px;
+  margin: 8px 0;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  opacity: 0.9;
+}
+
+.registerbtn:hover {
+  opacity: 1;
+}
+
+
+body {
+  font-family: Arial;
+  color: black;
+}
+
+.split {
+  height: 100%;
+  width: 75%;
+  position: fixed;
+  z-index: 1;
+  top: 0;
+  overflow-x: hidden;
+  padding-top: 20px;
+}
+.split1 {
+  height: 100%;
+  width: 25%;
+  position: fixed;
+  z-index: 1;
+  top: 0;
+  overflow-x: hidden;
+  padding-top: 20px;
+}
+.left {
+  left: 0;
+  background-color: white;
+}
+
+.right {
+  right: 0;
+  background-color: white;
+}
+
+.centered {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+ 
+}
+
+.centeredRight {
+  position: absolute;
+  top: 50%;
+  left: 5%;
+  transform: translate(-5%, -50%);
+ padding-right:35px;
+}
+</style>
+</head>
+<body>
+
+<div class="split left">
+  <div class="centered">
+  <div id='main-inner-canvas-div' style="width:1000px;height:500px;" onscroll="scrollFunction(event)">
+<div id='inner-canvas-div' style="width:970px;height:470px;">
+<canvas id="myCanvas" width="970" height="470" onmousedown="onMouseDown(event)"
+style="border:1px solid #c3c3c3;">
+</canvas>
+</div>
+</div>
+  </div>
+</div>
+
+<div class="split1 right">
+  <div class="centeredRight">
+ 
+    <label><b>Column Name (Required*)</b></label>
+    <input id='column-name' onkeyup="onInputFieldEdit()" type="text" placeholder="Enter Column Name" required>
+    <label><b>Table Alias Name</b></label>
+    <input id='table-alias-name' onkeyup="onInputFieldEdit()" type="text" placeholder="Leave Blank If Not Applicable" >
+    <label><b>Column Alias Name</b></label>
+    <input id='column-alias-name' onkeyup="onInputFieldEdit()" type="text" placeholder="Leave Blank If Not Applicable" >
+    <hr>
+    <button id='add-button' type="submit" onclick="addButtonClicks()" class="registerbtn">ADD</button>
+  </div>
+</div>
+    
+     <script>
+var mainDiv = document.getElementById('main-inner-canvas-div');
+var innerDiv = document.getElementById('inner-canvas-div');
+this.mainDiv.style.overflow='scroll';
+this.wholeDrawingContent={};
+this.drawingUniqueIdList=[];
+this.drawingUniqueIdList.push(0);
+this.columnTotalWidth= 800;
+this.rowTotalHeight=25;
+this.canvas = document.getElementById("myCanvas");
+this.startX= canvas.width/2-this.columnTotalWidth/2;
+this.startY=20;
+this.aliasNameWidth= 100;
+this.columnNameWidth= this.columnTotalWidth - 2*this.aliasNameWidth;
+this.columnSpaceOffset=10;
+this.rowSpaceOffset=20;
+
+this.firstColumnX= this.startX;
+this.secondColumnX= this.startX+this.columnNameWidth+this.columnSpaceOffset;
+this.thirdColumnX= this.startX+this.columnNameWidth+this.aliasNameWidth+2*this.columnSpaceOffset ;
+
+var ctx = this.canvas.getContext("2d");
+
+
+
+
+
+ function addButtonClicks (){
+ if(document.getElementById('column-name').value !== ''){
+ if(this.wholeDrawingContent[this.drawingUniqueIdList.length-1] !== undefined){
+ var newElementStartY=  this.wholeDrawingContent[this.drawingUniqueIdList.length-1]['startY']+this.rowTotalHeight+this.rowSpaceOffset;
+drawTableForColumn(newElementStartY);
+}else{
+this.drawTableForColumn( this.startY);
+}
+}
+}
+
+function onInputFieldEdit(){
+if(this.selectedUniqueId !== undefined){
+  var tableAliasName = document.getElementById('table-alias-name').value;
+  var columnAliasName = document.getElementById('column-alias-name').value;
+  var columnName = document.getElementById('column-name').value;
+  this.wholeDrawingContent[this.selectedUniqueId]['content-clmn-name'] = columnName;
+   this.wholeDrawingContent[this.selectedUniqueId]['content-tbl-als-nm'] = tableAliasName;
+    this.wholeDrawingContent[this.selectedUniqueId]['content-clmn-als-nm'] = columnAliasName;
+    this.reDraw();
+}
+}
+
+function onMouseDown(event){
+this.selectedUniqueId = undefined;
+var mouseX = event.offsetX;
+var mouseY = event.offsetY;
+document.getElementById('add-button').style.display='block';
+this.drawingUniqueIdList.forEach(function(elementId){
+if(this.wholeDrawingContent[elementId] !== undefined){
+ ctx.beginPath();
+ctx.rect(this.firstColumnX,this.wholeDrawingContent[elementId]['startY'],this.columnNameWidth,this.rowTotalHeight);
+ctx.rect(this.secondColumnX,this.wholeDrawingContent[elementId]['startY'],this.aliasNameWidth,this.rowTotalHeight);
+ctx.rect(this.thirdColumnX,this.wholeDrawingContent[elementId]['startY'],this.aliasNameWidth,this.rowTotalHeight);
+  if (ctx.isPointInPath(mouseX,mouseY)){
+  this.selectedUniqueId = elementId;
+  document.getElementById('add-button').style.display='none';
+  }
+ctx.closePath();
+}
+});
+document.getElementById('table-alias-name').value='';
+document.getElementById('column-alias-name').value='';
+document.getElementById('column-name').value='';
+ 
+this.reDraw();
+ }
+
+ function drawTableForColumn (startY ){
+  this.innerDiv.style.height=startY+2*this.rowTotalHeight+'px';
+  
+ var elementData = {};
+ elementData['uniqueId'] = this.drawingUniqueIdList[this.drawingUniqueIdList.length-1]+1;
+ this.drawingUniqueIdList.push(elementData['uniqueId']);
+ elementData['startY'] = startY;
+ 
+ this.selectedUniqueId = undefined;
+ 
+  var tableAliasName = document.getElementById('table-alias-name').value;
+  var columnAliasName = document.getElementById('column-alias-name').value;
+  var columnName = document.getElementById('column-name').value;
+  elementData['content-clmn-name'] = columnName;
+   elementData['content-tbl-als-nm'] = tableAliasName;
+    elementData['content-clmn-als-nm'] = columnAliasName;
+    
+ this.wholeDrawingContent[elementData['uniqueId']]=elementData;
+
+
+ ctx.beginPath();
+ ctx.font = "15px Arial";
+ctx.rect(this.firstColumnX,startY,this.columnNameWidth,this.rowTotalHeight);
+ctx.fillText(elementData['content-clmn-name'],this.firstColumnX+5,startY+this.rowTotalHeight/2+5);
+
+ctx.rect(this.secondColumnX,startY,this.aliasNameWidth,this.rowTotalHeight);
+ctx.fillText(elementData['content-tbl-als-nm'],this.secondColumnX+5,startY+this.rowTotalHeight/2+5);
+
+ctx.rect(this.thirdColumnX,startY,this.aliasNameWidth,this.rowTotalHeight);
+ctx.fillText(elementData['content-clmn-als-nm'],this.thirdColumnX+5,startY+this.rowTotalHeight/2+5);
+
+ctx.stroke();
+ctx.closePath();
+
+document.getElementById('table-alias-name').value='';
+document.getElementById('column-alias-name').value='';
+document.getElementById('column-name').value='';
+ 
+ this.reDraw();
+}
+
+
+function reDraw(){
+this.canvas.style.marginTop = this.mainDiv.scrollTop+'px';
+this.canvas.style.marginLeft = this.mainDiv.scrollLeft+'px';
+ctx.setTransform(1,0,0,1,0,0);
+ctx.clearRect(0,0,this.canvas.width,this.canvas.height);
+ctx.translate(-this.mainDiv.scrollLeft,-this.mainDiv.scrollTop);
+this.drawingUniqueIdList.forEach(function(elementId){
+if(this.wholeDrawingContent[elementId] !== undefined){
+ ctx.beginPath();
+ 
+ if(this.selectedUniqueId === elementId){
+  ctx.save();
+ ctx.strokeStyle = "red";
+ }
+ctx.fillText(this.wholeDrawingContent[elementId]['content-clmn-name'],this.firstColumnX+5,this.wholeDrawingContent[elementId]['startY']+this.rowTotalHeight/2+5);
+ctx.fillText(this.wholeDrawingContent[elementId]['content-tbl-als-nm'],this.secondColumnX+5,this.wholeDrawingContent[elementId]['startY']+this.rowTotalHeight/2+5);
+ctx.fillText(this.wholeDrawingContent[elementId]['content-clmn-als-nm'],this.thirdColumnX+5,this.wholeDrawingContent[elementId]['startY']+this.rowTotalHeight/2+5);
+ctx.rect(this.firstColumnX,this.wholeDrawingContent[elementId]['startY'],this.columnNameWidth,this.rowTotalHeight);
+ctx.rect(this.secondColumnX,this.wholeDrawingContent[elementId]['startY'],this.aliasNameWidth,this.rowTotalHeight);
+ctx.rect(this.thirdColumnX,this.wholeDrawingContent[elementId]['startY'],this.aliasNameWidth,this.rowTotalHeight);
+ctx.stroke();
+ctx.closePath();
+
+ if(this.selectedUniqueId === elementId){
+ document.getElementById('table-alias-name').value=this.wholeDrawingContent[elementId]['content-tbl-als-nm'];
+document.getElementById('column-alias-name').value=this.wholeDrawingContent[elementId]['content-clmn-als-nm'];
+document.getElementById('column-name').value=this.wholeDrawingContent[elementId]['content-clmn-name'];
+  ctx.restore();
+ }
+
+}
+});
+}
+
+
+function scrollFunction(event){
+this.reDraw();
+}
+
+</script>
+     
+</body>
+</html> 
