@@ -29,7 +29,7 @@ hr {
 
 /* Set a style for the submit button */
 .registerbtn {
-  background-color: #4CAF50;
+  background-color: #3953c7;
   color: white;
   padding: 16px 20px;
   margin: 8px 0;
@@ -39,6 +39,26 @@ hr {
   opacity: 0.9;
 }
 
+.removebtn {
+  background-color: red;
+  color: white;
+  padding: 16px 20px;
+  margin: 8px 0;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  opacity: 0.9;
+}
+
+.popupbtn {
+  background-color: #3953c7;
+  color: white;
+  padding: 6px 15px;
+  margin: 8px 0;
+  border: none;
+  cursor: pointer;
+  opacity: 0.9;
+}
 .registerbtn:hover {
   opacity: 1;
 }
@@ -92,10 +112,49 @@ body {
   transform: translate(-5%, -50%);
  padding-right:35px;
 }
+
+/* The Modal (background) */
+.modal {
+  display: none; /* Hidden by default */
+  position: fixed; /* Stay in place */
+  z-index: 1; /* Sit on top */
+  padding-top: 100px; /* Location of the box */
+  left: 0;
+  top: 0;
+  width: 100%; /* Full width */
+  height: 100%; /* Full height */
+  overflow: auto; /* Enable scroll if needed */
+  background-color: rgb(0,0,0); /* Fallback color */
+  background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+}
+
+/* Modal Content */
+.modal-content {
+  background-color: #fefefe;
+  margin: auto;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 50%;
+}
+
+/* The Close Button */
+.close {
+  color: #aaaaaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+  color: #000;
+  text-decoration: none;
+  cursor: pointer;
+}
 </style>
 </head>
 <body>
-
+<div>
 <div class="split left">
   <div class="centered">
   <div id='main-inner-canvas-div' style="width:1000px;height:500px;" onscroll="scrollFunction(event)">
@@ -105,6 +164,7 @@ style="border:1px solid #c3c3c3;">
 </canvas>
 </div>
 </div>
+<label>If Any Sql Query , Other Than Column Occurs   </label><button id="myBtn" class="popupbtn">Click Here</button>
   </div>
 </div>
 
@@ -119,30 +179,47 @@ style="border:1px solid #c3c3c3;">
     <input id='column-alias-name' onkeyup="onInputFieldEdit()" type="text" placeholder="Leave Blank If Not Applicable" >
     <hr>
     <button id='add-button' type="submit" onclick="addButtonClicks()" class="registerbtn">ADD</button>
+     <button id='remove-button' type="submit" onclick="removeButtonClicks()" class="removebtn">DELETE</button>
   </div>
+</div>
+    </div>
+    
+  <div id="myModal" class="modal">
+  <div class="modal-content">
+    <span class="close">&times;</span>
+    <div >    <div style="width:100%;">
+         <label><b>If Any Sql Query , Other Than Column are Insert Here  </b></label>
+    <textarea id='pop-over-text-area' style="width:100%;" name="message" rows="15" cols="50"></textarea>
+    <div style="margin-left:75%;">
+    <button id='pop-over-text-add-button' type="submit" onclick="addAdditionalButtonClicks()" class="registerbtn">ADD</button>
+     </div>
+    </div>
+     
+    </div></div>
 </div>
     
      <script>
 var mainDiv = document.getElementById('main-inner-canvas-div');
 var innerDiv = document.getElementById('inner-canvas-div');
+var removeBtn = document.getElementById('remove-button');
+removeBtn.style.display='none';
 this.mainDiv.style.overflow='scroll';
 this.wholeDrawingContent={};
 this.drawingUniqueIdList=[];
 this.drawingUniqueIdList.push(0);
 this.columnTotalWidth= 800;
-this.rowTotalHeight=25;
+this.rowTotalHeight=35;
 this.canvas = document.getElementById("myCanvas");
 this.startX= canvas.width/2-this.columnTotalWidth/2;
 this.startY=20;
 this.aliasNameWidth= 100;
 this.columnNameWidth= this.columnTotalWidth - 2*this.aliasNameWidth;
 this.columnSpaceOffset=10;
-this.rowSpaceOffset=20;
+this.rowSpaceOffset=10;
 
 this.firstColumnX= this.startX;
 this.secondColumnX= this.startX+this.columnNameWidth+this.columnSpaceOffset;
 this.thirdColumnX= this.startX+this.columnNameWidth+this.aliasNameWidth+2*this.columnSpaceOffset ;
-
 var ctx = this.canvas.getContext("2d");
 
 
@@ -151,8 +228,8 @@ var ctx = this.canvas.getContext("2d");
 
  function addButtonClicks (){
  if(document.getElementById('column-name').value !== ''){
- if(this.wholeDrawingContent[this.drawingUniqueIdList.length-1] !== undefined){
- var newElementStartY=  this.wholeDrawingContent[this.drawingUniqueIdList.length-1]['startY']+this.rowTotalHeight+this.rowSpaceOffset;
+ if(this.wholeDrawingContent[this.drawingUniqueIdList[this.drawingUniqueIdList.length-1]] !== undefined){
+ var newElementStartY=  this.wholeDrawingContent[this.drawingUniqueIdList[this.drawingUniqueIdList.length-1]]['startY']+this.rowTotalHeight+this.rowSpaceOffset;
 drawTableForColumn(newElementStartY);
 }else{
 this.drawTableForColumn( this.startY);
@@ -177,6 +254,7 @@ this.selectedUniqueId = undefined;
 var mouseX = event.offsetX;
 var mouseY = event.offsetY;
 document.getElementById('add-button').style.display='block';
+ removeBtn.style.display='none';
 this.drawingUniqueIdList.forEach(function(elementId){
 if(this.wholeDrawingContent[elementId] !== undefined){
  ctx.beginPath();
@@ -185,6 +263,7 @@ ctx.rect(this.secondColumnX,this.wholeDrawingContent[elementId]['startY'],this.a
 ctx.rect(this.thirdColumnX,this.wholeDrawingContent[elementId]['startY'],this.aliasNameWidth,this.rowTotalHeight);
   if (ctx.isPointInPath(mouseX,mouseY)){
   this.selectedUniqueId = elementId;
+ removeBtn.style.display='block';
   document.getElementById('add-button').style.display='none';
   }
 ctx.closePath();
@@ -199,7 +278,6 @@ this.reDraw();
 
  function drawTableForColumn (startY ){
   this.innerDiv.style.height=startY+2*this.rowTotalHeight+'px';
-  
  var elementData = {};
  elementData['uniqueId'] = this.drawingUniqueIdList[this.drawingUniqueIdList.length-1]+1;
  this.drawingUniqueIdList.push(elementData['uniqueId']);
@@ -221,6 +299,7 @@ this.reDraw();
  ctx.font = "15px Arial";
 ctx.rect(this.firstColumnX,startY,this.columnNameWidth,this.rowTotalHeight);
 ctx.fillText(elementData['content-clmn-name'],this.firstColumnX+5,startY+this.rowTotalHeight/2+5);
+  ctx.strokeStyle = "#C3C3C3";
 
 ctx.rect(this.secondColumnX,startY,this.aliasNameWidth,this.rowTotalHeight);
 ctx.fillText(elementData['content-tbl-als-nm'],this.secondColumnX+5,startY+this.rowTotalHeight/2+5);
@@ -248,11 +327,13 @@ ctx.translate(-this.mainDiv.scrollLeft,-this.mainDiv.scrollTop);
 this.drawingUniqueIdList.forEach(function(elementId){
 if(this.wholeDrawingContent[elementId] !== undefined){
  ctx.beginPath();
+   ctx.strokeStyle = "#C3C3C3";
  
  if(this.selectedUniqueId === elementId){
   ctx.save();
  ctx.strokeStyle = "red";
  }
+ 
 ctx.fillText(this.wholeDrawingContent[elementId]['content-clmn-name'],this.firstColumnX+5,this.wholeDrawingContent[elementId]['startY']+this.rowTotalHeight/2+5);
 ctx.fillText(this.wholeDrawingContent[elementId]['content-tbl-als-nm'],this.secondColumnX+5,this.wholeDrawingContent[elementId]['startY']+this.rowTotalHeight/2+5);
 ctx.fillText(this.wholeDrawingContent[elementId]['content-clmn-als-nm'],this.thirdColumnX+5,this.wholeDrawingContent[elementId]['startY']+this.rowTotalHeight/2+5);
@@ -276,6 +357,70 @@ document.getElementById('column-name').value=this.wholeDrawingContent[elementId]
 
 function scrollFunction(event){
 this.reDraw();
+}
+
+function removeButtonClicks(){
+this.drawingUniqueIdList.forEach(function(elementsId){
+if(this.wholeDrawingContent[elementsId] !== undefined){
+ if(this.selectedUniqueId === elementsId){
+ this.drawingUniqueIdList = arrayRemove(this.drawingUniqueIdList, elementsId);
+delete  this.wholeDrawingContent[elementsId];
+ this.selectedUniqueId = undefined;
+  document.getElementById('table-alias-name').value='';
+document.getElementById('column-alias-name').value='';
+document.getElementById('column-name').value='';
+document.getElementById('add-button').style.display='block';
+ removeBtn.style.display='none';
+ }
+ }
+ });
+ this.reDraw();
+}
+
+function arrayRemove(arr, value) {
+   return arr.filter(function(ele){
+       return ele != value;
+   });
+
+}
+
+//-------------------------------------------------------------------------------------------------
+
+this.wholeDrawingContent['additional-column-select-data']='';
+
+// Get the modal
+var modal = document.getElementById('myModal');
+
+// Get the button that opens the modal
+var btn = document.getElementById("myBtn");
+
+var additionalSearchTextBox = document.getElementById("pop-over-text-add-button");
+var additionalSearchTextArea = document.getElementById("pop-over-text-area");
+
+// Get the <span> element that closes the modal
+var span = document.getElementsByClassName("close")[0];
+
+// When the user clicks the button, open the modal 
+btn.onclick = function() {
+  modal.style.display = "block";
+  additionalSearchTextArea.value=this.wholeDrawingContent['additional-column-select-data'];
+}
+
+// When the user clicks on <span> (x), close the modal
+span.onclick = function() {
+  modal.style.display = "none";
+}
+
+// When the user clicks anywhere outside of the modal, close it
+window.onclick = function(event) {
+  if (event.target == modal) {
+    modal.style.display = "none";
+  }
+}
+
+function addAdditionalButtonClicks(){
+this.wholeDrawingContent['additional-column-select-data']= additionalSearchTextArea.value;
+modal.style.display = "none";
 }
 
 </script>
